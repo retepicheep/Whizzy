@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Robot FPV Control</title>
+    <!-- Link to external CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='hud.css') }}">
+</head>
+
+<body>
+    <!-- Video feed -->
+    <img id="video" src="{{ url_for('video_feed') }}" alt="Video stream">
+
+    <!-- HUD overlay -->
+    <div id="hud">
+        <div id="speed">SPD: --</div>
+        <div id="system-health">
+            <div class="health-item" id="cpu-temp">Temp: CPU: --</div>
+            <div class="health-item" id="cpu-load">Load: SYS: --</div>
+            <div class="health-item" id="wifi-strength">Connection: LINK: --</div>
+        </div>
+    </div>
+
+    <script>
+        // ---- Keyboard command code ----
+        function sendCommand(cmdArray) {
+            fetch("/control", {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: cmdArray })
+            });
+        }
+
+        const keyMap = { "w": "w", "a": "a", "s": "s", "d": "d", " ": "space", "Shift": "shift" };
+        const pressed = new Set();
+
+        function updateCommands() {
+            if (pressed.size > 0) {
+                sendCommand(Array.from(pressed));
+            } else {
+                sendCommand(["stop"]);
+            }
+        }
+
+        document.addEventListener('keydown', e => {
+            const key = e.key;
+            if (keyMap[key]) {
+                pressed.add(keyMap[key]);
+                updateCommands();
+            }
+        });
+
+        document.addEventListener('keyup', e => {
+            const key = e.key;
+            if (keyMap[key]) {
+                pressed.delete(keyMap[key]);
+
+                // extra stop logic for drive/rotation
+                if (["w", "s"].includes(key)) {
+                    sendCommand(["stop drive"]);
+                }
+                if (["a", "d"].includes(key)) {
+                    sendCommand(["stop rotate"]);
+                }
+
+                updateCommands();
+            }
+        });
+
+
+
+        // ---- System health update code ----
+        async function updateSystemHealth() {
+            try {
+                const res = await fetch("/system_health");
+                const data = await res.json();
+                document.getElementById("cpu-temp").innerText = "Temp: CPU: " + data.cpu_temp;
+                document.getElementById("cpu-load").innerText = "Load: SYS: " + data.cpu_load;
+                document.getElementById("wifi-strength").innerText = "Connection: LINK: " + data.wifi_strength;
+            } catch (err) {
+                console.error("Failed to fetch system health:", err);
+            }
+        }
+        async function updateSpeed() {
+            try {
+                const res = await fetch("/speed");
+                const data = await res.json();
+                document.getElementById("speed").innerText = "SPD: " + data.speed;
+            } catch (err) {
+                console.error("Failed to fetch speed:", err)
+            }
+
+        }
+
+        // Update every 1 second
+        setInterval(updateSystemHealth, 1000);
+        setInterval(updateSpeed, 10);
+        updateSpeed();
+        updateSystemHealth();
+    </script>
+</body>
+
+</html>
