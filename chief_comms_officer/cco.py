@@ -67,73 +67,52 @@ def get_wifi_strength():
             return f"{strength_dbm}, {strength_percent}, {quality}"
 
 
-def send_commands(commands):
-    global speed, actul_speed
+def send_commands(cmds: list):
+    """
+    Interprets a list of command strings to control the car.
 
-    # Process speed modifiers first
-    if "space" in commands:
-        speed = 100
-    elif "shift" in commands:
-        speed = 200
+    Args:
+        cmds: List of strings representing active control inputs.
+        Valid commands: 'w' (forward), 's' (backward), 'a' (rotate right),
+        'd' (rotate left), 'space' (slow mode), 'shift' (boost mode),
+        'stop drive', 'stop rotate', 'stop'
+    """
+    # Determine speed based on modifiers
+    if "space" in cmds:
+        speed = 100  # slow mode
+    elif "shift" in cmds:
+        speed = 200  # boost mode
     else:
-        speed = 150
+        speed = 150  # default speed
 
-    # Handle stop commands
-    if "stop" in commands:
+    # Check for stop commands
+    if "stop" in cmds or ("stop drive" in cmds and "stop rotate" in cmds):
         driver.stop()
-        actul_speed = 0
-        return
-    if "stop drive" in commands and "stop rotate" in commands:
-        driver.stop()
-        actul_speed = 0
         return
 
-    # Initialize movement flags
-    forward = backward = rotate_left = rotate_right = False
+    # Handle driving (forward/backward)
+    if "stop drive" not in cmds:
+        if "w" in cmds:  # Forward
+            if "a" in cmds:  # Forward + right arc
+                driver.drive(1, speed // 2, speed)
+            elif "d" in cmds:  # Forward + left arc
+                driver.drive(1, speed, speed // 2)
+            else:  # Straight forward
+                driver.drive(1, speed, speed)
+        elif "s" in cmds:  # Backward
+            if "a" in cmds:  # Backward + right arc
+                driver.drive(-1, speed // 2, speed)
+            elif "d" in cmds:  # Backward + left arc
+                driver.drive(-1, speed, speed // 2)
+            else:  # Straight backward
+                driver.drive(-1, speed, speed)
 
-    # Set movement flags based on commands
-    for cmd in commands:
-        if cmd == "w":
-            forward = True
-        elif cmd == "s":
-            backward = True
-        elif cmd == "d":
-            rotate_left = True
-        elif cmd == "a":
-            rotate_right = True
-        elif cmd == "stop drive":
-            forward = False
-            backward = False
-        elif cmd == "stop rotate":
-            rotate_left = False
-            rotate_right = False
-
-    # Execute movement based on flags
-    if forward and not backward:
-        actul_speed = speed if not (rotate_left or rotate_right) else speed * 0.7
-        if rotate_left:
-            driver.forward_left(actul_speed)
-        elif rotate_right:
-            driver.forward_right(actul_speed)
-        else:
-            driver.forward(actul_speed)
-    elif backward and not forward:
-        actul_speed = -speed if not (rotate_left or rotate_right) else -speed * 0.7
-        if rotate_left:
-            driver.backward_left(abs(actul_speed))
-        elif rotate_right:
-            driver.backward_right(abs(actul_speed))
-        else:
-            driver.backward(abs(actul_speed))
-    elif rotate_left and not rotate_right:
-        driver.rotate_left(speed)
-        actul_speed = speed
-    elif rotate_right and not rotate_left:
-        driver.rotate_right(speed)
-        actul_speed = speed
-    else:
-        driver.stop()
-        actul_speed = 0
+    # Handle rotation (when not moving forward/backward)
+    if "stop rotate" not in cmds and "w" not in cmds and "s" not in cmds:
+        if "a" in cmds:  # Rotate right
+            driver.rotate(1, speed, speed)
+        elif "d" in cmds:  # Rotate left
+            driver.rotate(-1, speed, speed)
 
 
 # ------------------ Video Stream ------------------
