@@ -93,16 +93,16 @@ def send_commands(cmds: list):
     # Handle driving (forward/backward)
     if "stop drive" not in cmds:
         if "w" in cmds:  # Forward
-            if "a" in cmds:  # Forward + right arc
+            if "d" in cmds:  # Forward + right arc
                 driver.drive(1, speed // 2, speed)
-            elif "d" in cmds:  # Forward + left arc
+            elif "a" in cmds:  # Forward + left arc
                 driver.drive(1, speed, speed // 2)
             else:  # Straight forward
                 driver.drive(1, speed, speed)
         elif "s" in cmds:  # Backward
-            if "a" in cmds:  # Backward + right arc
+            if "d" in cmds:  # Backward + right arc
                 driver.drive(-1, speed // 2, speed)
-            elif "d" in cmds:  # Backward + left arc
+            elif "a" in cmds:  # Backward + left arc
                 driver.drive(-1, speed, speed // 2)
             else:  # Straight backward
                 driver.drive(-1, speed, speed)
