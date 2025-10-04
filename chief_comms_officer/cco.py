@@ -88,7 +88,6 @@ def send_commands(cmds: list):
     # Check for stop commands
     if "stop" in cmds or ("stop drive" in cmds and "stop rotate" in cmds):
         driver.stop()
-        return
 
     # Handle driving (forward/backward)
     if "stop drive" not in cmds:
@@ -128,6 +127,10 @@ def generate_frames():
 
 
 # ------------------ Flask Routes ------------------
+@app.route("/", methods=["GET", "POST"])
+def home():
+    return render_template("home.html")
+
 @app.route("/control", methods=["GET", "POST"])
 def control():
     if request.method == "POST":
