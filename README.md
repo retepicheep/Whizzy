@@ -2,7 +2,7 @@
 
 Whizzy is a RC car controlled remotely via a web interface. This project seeks to build out a reliable autonomous platform capable of carrying out various missions, from mapping to object delivery using computer vision and machine learning.
 
-<video src="README_assets/car.mp4" autoplay loop muted playsinline></video>
+https://github.com/user-attachments/assets/3d68838e-caf1-4730-a2a9-93dc345b7492
 
 ## Design Considerations
 
