@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Robot Car</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='hud.css') }}">
+</head>
+
+<body>
+    <div style="max-width: 400px; margin: 100px auto; text-align: center;">
+        <h1>Access Control</h1>
+        {% if error %}
+        <p style="color: red;">{{ error }}</p>
+        {% endif %}
+        <form method="POST">
+            <label>Username:</label><br>
+            <input type="text" name="username" required><br><br>
+            <label>Password:</label><br>
+            <input type="password" name="password" required><br><br>
+            <button type="submit">Request Access</button>
+        </form>
+    </div>
+</body>
+
+</html>

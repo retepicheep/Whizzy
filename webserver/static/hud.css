@@ -12,6 +12,7 @@ html {
 /* Fullscreen video */
 #video {
     position: fixed;
+    transform: rotate(180deg);
     /* fixed so it always fills screen */
     top: 0;
     left: 0;

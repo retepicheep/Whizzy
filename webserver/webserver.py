@@ -1,8 +1,8 @@
 import serial
 import time
 import sys
-from flask import Flask, request, render_template, Response
-
+from flask import Flask, request, render_template, Response, redirect, url_for, session
+from functools import wraps
 sys.path.append("/usr/lib/python3/dist-packages")
 from picamera2 import Picamera2
 from webserver.toggle_day_night import set_day_mode, set_night_mode
@@ -11,8 +11,17 @@ import pyfirmata2
 import cv2
 import subprocess
 import psutil
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+ADMIN_USER = os.getenv("ROBOTCAR_USER")
+ADMIN_PASS = os.getenv("ROBOTCAR_PASS")
+FLASK_SECRET_KEY = os.getenv("FLASK_SECRET_KEY")
+
 
 app = Flask(__name__)
+app.secret_key = ADMIN_PASS
 
 # ------------------ Camera Setup ------------------
 camera = Picamera2()
@@ -25,6 +34,14 @@ board = pyfirmata2.Arduino(PORT)
 driver = Drive(board)
 speed = 150
 actul_speed = 0
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get("authenticated"):
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 # ------------------ System Health Functions ------------------
@@ -128,11 +145,13 @@ def generate_frames():
 
 # ------------------ Flask Routes ------------------
 @app.route("/", methods=["GET", "POST"])
+@login_required
 def home():
     return render_template("home.html")
 
 
 @app.route("/control", methods=["GET", "POST"])
+@login_required
 def control():
     if request.method == "POST":
         data = request.get_json()
@@ -143,6 +162,7 @@ def control():
 
 
 @app.route("/video_feed")
+@login_required
 def video_feed():
     return Response(
         generate_frames(), mimetype="multipart/x-mixed-replace; boundary=frame"
@@ -162,6 +182,25 @@ def system_health():
         "cpu_load": f"{get_cpu_load():.0f}%",
         "wifi_strength": get_wifi_strength(),
     }
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if username == ADMIN_USER and password == ADMIN_PASS:
+            session["authenticated"] = True
+            return redirect(url_for("home"))
+        else:
+            return render_template("login.html", error="Invalid credentials")
+    
+    return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    session.pop("authenticated", None)
+    return redirect(url_for("login"))
 
 
 # ------------------ Main ------------------
