@@ -54,7 +54,7 @@
         document.addEventListener('keyup', e => {
             const key = e.key;
             if (keyMap[key]) {
-                pressed.delete(keyMap[key]);
+               pressed.delete(keyMap[key]);
 
                 // extra stop logic for drive/rotation
                 if (["w", "s"].includes(key)) {
