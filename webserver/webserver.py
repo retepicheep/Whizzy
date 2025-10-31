@@ -5,8 +5,8 @@ from flask import Flask, request, render_template, Response
 
 sys.path.append("/usr/lib/python3/dist-packages")
 from picamera2 import Picamera2
-from chief_comms_officer.toggle_day_night import set_day_mode, set_night_mode
-from pilot.pilot import Drive
+from webserver.toggle_day_night import set_day_mode, set_night_mode
+from arduino_interface.interface import Drive
 import pyfirmata2
 import cv2
 import subprocess
@@ -130,6 +130,7 @@ def generate_frames():
 @app.route("/", methods=["GET", "POST"])
 def home():
     return render_template("home.html")
+
 
 @app.route("/control", methods=["GET", "POST"])
 def control():
