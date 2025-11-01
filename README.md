@@ -4,6 +4,10 @@ Whizzy is a RC car controlled remotely via a web interface. This project seeks t
 
 https://github.com/user-attachments/assets/3d68838e-caf1-4730-a2a9-93dc345b7492
 
+
+https://github.com/user-attachments/assets/ece78ee2-416b-4b26-98cf-a995c56e6113
+
+
 ## Design Considerations
 
 As I don't have a 3d printer, I opted for getting off the shelf components for the
